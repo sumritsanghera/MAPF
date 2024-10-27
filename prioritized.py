@@ -41,13 +41,29 @@ class PrioritizedPlanningSolver(object):
             #     'timestep': 1
             # }
 
-            # {'agent': 1, 'loc': [(1, 2), (1, 3)], 'timestep': 1}
+            # {'agent': 1, 'loc': [(1, 2), (1, 3)], 'timestep': 1} #1.3
 
-            {
-                'agent': 0,
-                'loc': [(1,5)],
-                'timestep': 10
-            }
+            # {
+            #     'agent': 0,
+            #     'loc': [(1,5)],
+            #     'timestep': 10
+            # }  #1.4
+
+            # {
+            #     'agent': 1,
+            #     'loc': [(1,3), (1,4)],
+            #     'timestep': 2
+            # },
+            # {
+            #     'agent': 1,
+            #     'loc': [(1,2)],
+            #     'timestep': 2
+            # },
+            # {
+            #     'agent': 1,
+            #     'loc': [(1,3)],
+            #     'timestep': 2
+            # } ## blue goes down
         
         ]
 
@@ -64,7 +80,17 @@ class PrioritizedPlanningSolver(object):
             #            * path contains the solution path of the current (i'th) agent, e.g., [(1,1),(1,2),(1,3)]
             #            * self.num_of_agents has the number of total agents
             #            * constraints: array of constraints to consider for future A* searches
-
+            
+            #2.1
+            for t, location in enumerate(path):
+            # Loop over all future agents to apply vertex constraints
+                for future_agent in range(i + 1, self.num_of_agents):
+                    constraint = {
+                        'agent': future_agent,
+                        'loc': [location],  # Vertex constraint location for future agents
+                        'timestep': t       # Time step when the location is constrained
+                    }
+                    constraints.append(constraint)
 
             ##############################
 
