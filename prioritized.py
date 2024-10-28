@@ -82,15 +82,50 @@ class PrioritizedPlanningSolver(object):
             #            * constraints: array of constraints to consider for future A* searches
             
             #2.1
-            for t, location in enumerate(path):
-            # Loop over all future agents to apply vertex constraints
-                for future_agent in range(i + 1, self.num_of_agents):
-                    constraint = {
-                        'agent': future_agent,
-                        'loc': [location],  # Vertex constraint location for future agents
-                        'timestep': t       # Time step when the location is constrained
-                    }
-                    constraints.append(constraint)
+            # for t, location in enumerate(path):
+            # # Loop over all future agents to apply vertex constraints
+            #     for future_agent in range(i + 1, self.num_of_agents):
+            #         constraint = {
+            #             'agent': future_agent,
+            #             'loc': [location],  # Vertex constraint location for future agents
+            #             'timestep': t       # Time step when the location is constrained
+            #         }
+            #         constraints.append(constraint)
+
+            for agent in range(self.num_of_agents):
+                if agent == i:
+                    continue  # Skip constraints for the current agent
+
+                for index, location in enumerate(path):
+                    # Task 2.1: Add vertex constraints
+                    constraints.append({
+                        'agent': agent,
+                        'loc': [location],
+                        'timestep': index
+                    })
+
+                    # Task 2.2: Add edge constraints (forward and backward)
+                    if index > 0:
+                        prev_location = path[index - 1]
+                        constraints.append({
+                            'agent': agent,
+                            'loc': [prev_location, location],
+                            'timestep': index
+                        })
+                        constraints.append({
+                            'agent': agent,
+                            'loc': [location, prev_location],
+                            'timestep': index
+                        })
+
+                    # Task 2.3: Add additional goal constraints for future timesteps
+                    goal_location = path[-1]
+                    for goal_constraint in range(len(path), self.num_of_agents * len(path)):
+                        constraints.append({
+                            'agent': agent,
+                            'loc': [goal_location],
+                            'timestep': goal_constraint
+                        })
 
             ##############################
 

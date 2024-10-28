@@ -46,7 +46,7 @@ def compute_heuristics(my_map, goal):
         h_values[loc] = node['cost']
     return h_values
 
-
+##Refactor this
 def build_constraint_table(constraints, agent):
     ##############################
     # Task 1.2/1.3: Return a table that constains the list of constraints of
@@ -117,7 +117,7 @@ def is_constrained(curr_loc, next_loc, next_time, constraint_table):
     #               by time step, see build_constraint_table.
 
     # Check if there are any constraints at this timestep
-    if not constraint_table.get(next_time, False):
+    if next_time not in constraint_table:
         return False
 
     # Retrieve constraints for this timestep
