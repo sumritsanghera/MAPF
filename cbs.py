@@ -196,38 +196,69 @@ class CBSSolver(object):
         #                standard_splitting function). Add a new child node to your open list for each constraint
         #           Ensure to create a copy of any objects that your child nodes might inherit
 
-        while len(self.open_list) > 0:
-            # Step 1: Expand the next node from the open list
-            node = self.pop_node()
+        # while len(self.open_list) > 0:
+        #     # Step 1: Expand the next node from the open list
+        #     node = self.pop_node()
 
-            # Step 2: If there are no collisions, return solution
-            if len(node['collisions']) == 0:
-                self.print_results(node)
-                return node['paths']  # Solution found
+        #     # Step 2: If there are no collisions, return solution
+        #     if len(node['collisions']) == 0:
+        #         self.print_results(node)
+        #         return node['paths']  # Solution found -- P is a goal node
 
-            # Step 3: Handle the first collision and create constraints
-            collision = node['collisions'][0]  # Take the first collision
-            constraints = standard_splitting(collision)  # Create constraints for each agent
+        #     # Step 3: Handle the first collision and create constraints
+        #     collision = node['collisions'][0]  # Take the first collision
+        #     constraints = standard_splitting(collision)  # Create constraints for each agent
 
-            for constraint in constraints:
-                # Create a copy of the node to avoid modifying the original node's data
-                child = {
-                    'cost': node['cost'],
-                    'constraints': node['constraints'] + [constraint],
-                    'paths': node['paths'].copy(),
-                    'collisions': []
+        #     for constraint in constraints:
+        #         # Create a copy of the node to avoid modifying the original node's data
+        #         child = {
+        #             'cost': node['cost'],
+        #             'constraints': node['constraints'] + [constraint],
+        #             'paths': node['paths'].copy(),
+        #             'collisions': []
+        #         }
+
+        #         # Re-plan for the specific agent that received the new constraint
+        #         agent_id = constraint['agent']
+        #         path = a_star(self.my_map, self.starts[agent_id], self.goals[agent_id],
+        #                     self.heuristics[agent_id], agent_id, child['constraints'])
+
+        #         if path is not None:
+        #             child['paths'][agent_id] = path  # Update the path for this agent
+        #             child['collisions'] = detect_collisions(child['paths'])
+        #             child['cost'] = get_sum_of_cost(child['paths'])
+        #             self.push_node(child)  # Add child node to open list
+
+        while len(self.open_list) > 0:            # while OPEN is not empty do
+            P = self.pop_node()                   # P ← node from OPEN with smallest cost
+            
+            if len(P['collisions']) == 0:         # if P.collisions = ∅ then
+                self.print_results(P)
+                return P['paths']                 # return P.paths
+
+            # Handle the first collision
+            collision = P['collisions'][0]        # collision ← one collision in P.collisions
+            constraints = standard_splitting(collision)  # constraints ← standard_splitting(collision)
+
+            # Generate a child node for each constraint
+            for constraint in constraints:        # for constraint in constraints do
+                Q = {                             # Q ← new node
+                    'constraints': P['constraints'] + [constraint],   # Q.constraints ← P.constraints ∪ {constraint}
+                    'paths': P['paths'].copy(),
+                    'collisions': [],
+                    'cost': 0
                 }
 
-                # Re-plan for the specific agent that received the new constraint
-                agent_id = constraint['agent']
+                # Re-plan path for the agent affected by the constraint
+                agent_id = constraint['agent']    # ai ← the agent in constraint
                 path = a_star(self.my_map, self.starts[agent_id], self.goals[agent_id],
-                            self.heuristics[agent_id], agent_id, child['constraints'])
-
-                if path is not None:
-                    child['paths'][agent_id] = path  # Update the path for this agent
-                    child['collisions'] = detect_collisions(child['paths'])
-                    child['cost'] = get_sum_of_cost(child['paths'])
-                    self.push_node(child)  # Add child node to open list
+                              self.heuristics[agent_id], agent_id, Q['constraints'])
+                
+                if path is not None:              # if path is not empty then
+                    Q['paths'][agent_id] = path   # Replace the path of agent ai in Q.paths by path
+                    Q['collisions'] = detect_collisions(Q['paths'])
+                    Q['cost'] = get_sum_of_cost(Q['paths'])
+                    self.push_node(Q)             # Insert Q into OPEN
 
         self.print_results(root)
         return root['paths']
