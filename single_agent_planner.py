@@ -212,6 +212,7 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
             if(earliest_goal_timestep <= curr['timestep']):
                 return get_path(curr)
             
+            
         for dir in range(5):
             if (dir == 4):
                 child_loc=curr['loc'] #1.2 stop agent 0
@@ -220,11 +221,20 @@ def a_star(my_map, start_loc, goal_loc, h_values, agent, constraints):
 
             # if child_loc[0] < 0 or child_loc[0] >= len(my_map) or child_loc[1] < 0 or child_loc[1] >= len(my_map[0]):
             #     continue
+
+            # Check bounds -- needed for 3.4
+            if (child_loc[0] < 0 or child_loc[0] >= len(my_map) or 
+                child_loc[1] < 0 or child_loc[1] >= len(my_map[0])):
+                continue
           
             if my_map[child_loc[0]][child_loc[1]]:
                 continue
 
             if is_constrained(curr['loc'], child_loc, curr['timestep'] + 1, constraint_table):
+                continue
+
+            h_val = h_values.get(child_loc) #needed for 3.4
+            if h_val is None:
                 continue
             
             child = {'loc': child_loc,

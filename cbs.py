@@ -70,7 +70,36 @@ def standard_splitting(collision):
     #                          specified timestep, and the second constraint prevents the second agent to traverse the
     #                          specified edge at the specified timestep
 
-    pass
+    #pass
+
+    constraints = []
+    
+    if len(collision['loc']) == 1:
+        # Vertex collision
+        constraints.append({
+            'agent': collision['a1'], 
+            'loc': collision['loc'], 
+            'timestep': collision['timestep']
+        })
+        constraints.append({
+            'agent': collision['a2'], 
+            'loc': collision['loc'], 
+            'timestep': collision['timestep']
+        })
+    else:
+        # Edge collision
+        constraints.append({
+            'agent': collision['a1'], 
+            'loc': [collision['loc'][0], collision['loc'][1]], 
+            'timestep': collision['timestep']
+        })
+        constraints.append({
+            'agent': collision['a2'], 
+            'loc': [collision['loc'][1], collision['loc'][0]], 
+            'timestep': collision['timestep']
+        })
+
+    return constraints
 
 
 def disjoint_splitting(collision):
@@ -166,6 +195,39 @@ class CBSSolver(object):
         #             3. Otherwise, choose the first collision and convert to a list of constraints (using your
         #                standard_splitting function). Add a new child node to your open list for each constraint
         #           Ensure to create a copy of any objects that your child nodes might inherit
+
+        while len(self.open_list) > 0:
+            # Step 1: Expand the next node from the open list
+            node = self.pop_node()
+
+            # Step 2: If there are no collisions, return solution
+            if len(node['collisions']) == 0:
+                self.print_results(node)
+                return node['paths']  # Solution found
+
+            # Step 3: Handle the first collision and create constraints
+            collision = node['collisions'][0]  # Take the first collision
+            constraints = standard_splitting(collision)  # Create constraints for each agent
+
+            for constraint in constraints:
+                # Create a copy of the node to avoid modifying the original node's data
+                child = {
+                    'cost': node['cost'],
+                    'constraints': node['constraints'] + [constraint],
+                    'paths': node['paths'].copy(),
+                    'collisions': []
+                }
+
+                # Re-plan for the specific agent that received the new constraint
+                agent_id = constraint['agent']
+                path = a_star(self.my_map, self.starts[agent_id], self.goals[agent_id],
+                            self.heuristics[agent_id], agent_id, child['constraints'])
+
+                if path is not None:
+                    child['paths'][agent_id] = path  # Update the path for this agent
+                    child['collisions'] = detect_collisions(child['paths'])
+                    child['cost'] = get_sum_of_cost(child['paths'])
+                    self.push_node(child)  # Add child node to open list
 
         self.print_results(root)
         return root['paths']
